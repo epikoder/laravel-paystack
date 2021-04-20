@@ -113,9 +113,9 @@ class Paystack
     {
         if ( $data == null ) {
 
-            $quantity = intval(request()->quantity);
+            $quantity = intval(request()->quantity ?? 1);
 
-            $data = [
+            $data = array_filter([
                 "amount" => intval(request()->amount) * $quantity,
                 "reference" => request()->reference,
                 "email" => request()->email,
@@ -124,6 +124,7 @@ class Paystack
                 "last_name" => request()->last_name,
                 "callback_url" => request()->callback_url,
                 "currency" => (request()->currency != ""  ? request()->currency : "NGN"),
+                
                 /*
                     Paystack allows for transactions to be split into a subaccount -
                     The following lines trap the subaccount ID - as well as the ammount to charge the subaccount (if overriden in the form)
@@ -131,24 +132,22 @@ class Paystack
                 */
                 "subaccount" => request()->subaccount,
                 "transaction_charge" => request()->transaction_charge,
+                
                 /*
                 * to allow use of metadata on Paystack dashboard and a means to return additional data back to redirect url
                 * form need an input field: <input type="hidden" name="metadata" value="{{ json_encode($array) }}" >
-                *array must be set up as: $array = [ 'custom_fields' => [
-                *                                                            ['display_name' => "Cart Id", "variable_name" => "cart_id", "value" => "2"],
-                *                                                            ['display_name' => "Sex", "variable_name" => "sex", "value" => "female"],
-                *                                                            .
-                *                                                            .
-                *                                                            .
-                *                                                        ]
-                *
-                *                                  ]
+                * array must be set up as: 
+                * $array = [ 'custom_fields' => [
+                *                   ['display_name' => "Cart Id", "variable_name" => "cart_id", "value" => "2"],
+                *                   ['display_name' => "Sex", "variable_name" => "sex", "value" => "female"],
+                *                   .
+                *                   .
+                *                   .
+                *                  ]
+                *          ]
                 */
                 'metadata' => request()->metadata
-            ];
-
-            // Remove the fields which were not sent (value would be null)
-            array_filter($data);
+            ]);
         }
 
         $this->setHttpResponse('/transaction/initialize', 'POST', $data);
